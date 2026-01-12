@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { updateSiteConfig } from "@/actions/site";
 import {
@@ -48,6 +48,14 @@ export function SettingsForm({ siteConfig, appUrl }: SettingsFormProps) {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [currentBaseUrl, setCurrentBaseUrl] = useState(appUrl);
+
+  // 客户端自动检测域名（如果服务器传来的是 localhost）
+  useEffect(() => {
+    if (typeof window !== "undefined" && appUrl.includes("localhost")) {
+      setCurrentBaseUrl(window.location.origin);
+    }
+  }, [appUrl]);
 
   // 当前值
   const slug = siteConfig?.slug || "";
@@ -57,7 +65,7 @@ export function SettingsForm({ siteConfig, appUrl }: SettingsFormProps) {
 
   // 复制链接
   function copyLink() {
-    const fullUrl = `${appUrl}/site/${slug}`;
+    const fullUrl = `${currentBaseUrl}/site/${slug}`;
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -102,7 +110,7 @@ export function SettingsForm({ siteConfig, appUrl }: SettingsFormProps) {
           <div className="space-y-2">
             <Label htmlFor="slug">您的网站地址</Label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500">{appUrl}/site/</span>
+              <span className="text-sm text-slate-500">{currentBaseUrl}/site/</span>
               <Input
                 id="slug"
                 name="slug"
@@ -226,12 +234,12 @@ export function SettingsForm({ siteConfig, appUrl }: SettingsFormProps) {
                 </div>
                 <div className="flex items-center justify-between rounded-md bg-white px-3 py-2">
                   <a
-                    href={`${appUrl}/site/${slug}`}
+                    href={`${currentBaseUrl}/site/${slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
                   >
-                    {appUrl}/site/{slug}
+                    {currentBaseUrl}/site/{slug}
                     <ExternalLink className="h-3 w-3" />
                   </a>
                   <Button
