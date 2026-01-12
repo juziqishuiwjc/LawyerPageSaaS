@@ -4,6 +4,9 @@ import { ClassicTheme } from "@/components/themes/classic";
 import { ModernTheme } from "@/components/themes/modern";
 import type { Metadata } from "next";
 
+// 强制动态渲染，避免 Vercel 构建时尝试静态生成
+export const dynamic = "force-dynamic";
+
 interface SitePageProps {
   params: Promise<{
     slug: string;
