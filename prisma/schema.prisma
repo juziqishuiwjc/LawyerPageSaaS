@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")          // Vercel 自动提供的连接池地址
+  directUrl = env("POSTGRES_URL_NON_POOLING")      // 用于迁移的直连地址
+}
+
+// 律师用户模型
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique // 关联 Clerk 的用户 ID
+  email     String   @unique
+  name      String?  // 律师姓名
+  avatarUrl String?  // 头像图片链接
+  title     String?  // 头衔，如：高级合伙人 / 专职律师
+  licenseNo String?  // 执业证号
+  organization String? // 执业机构（律所名称）
+  phone     String?  // 联系电话
+  wechatQr  String?  // 微信二维码链接
+  bio       String?  // 个人简介（支持长文本）
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联关系
+  siteConfig  SiteConfig?
+  cases       CaseStudy[]
+  specialties Specialty[]
+}
+
+// 网站配置（控制显示风格）
+model SiteConfig {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug         String   @unique // 个性化后缀，如 /wang-lawyer
+  themeId      String   @default("classic") // 模板 ID：classic 或 modern
+  primaryColor String   @default("#1e40af") // 主色调
+  isPublished  Boolean  @default(false) // 是否发布
+}
+
+// 成功案例
+model CaseStudy {
+  id          String    @id @default(cuid())
+  title       String    // 案件标题
+  description String    // 案情描述
+  result      String?   // 判决结果/辩护效果
+  date        DateTime? // 案发或判决时间
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 擅长领域（标签）
+model Specialty {
+  id    String @id @default(cuid())
+  name  String // 领域名称，如：刑事辩护
+
+  users User[] // 多对多关系
+}
